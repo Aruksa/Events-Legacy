@@ -3,21 +3,15 @@ import Event from "../models/Event";
 import { EventGenre } from "../models";
 import { Op } from "sequelize";
 
-export const createEvent: RequestHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const createEvent: RequestHandler = async (req: Request, res: Response): Promise<void> => {
   try {
-    const {
-      title,
-      details,
-      thumbnailUrl,
-      location,
-      startDate,
-      endDate,
-      genreId,
-    } = req.body;
-    const userId = (req as any).user?.id; // authenticated user
+    const { title, details, thumbnailUrl, location, startDate, endDate, genreId } = req.body;
+    const userId = (req as any).user?.id;
+
+    if (!title || !details || !thumbnailUrl || !location || !startDate || !endDate || !userId || !genreId) {
+      res.status(400).json({ message: "Missing required fields" });
+      return;
+    }
 
     const newEvent = await Event.create({
       title,
@@ -39,9 +33,7 @@ export const createEvent: RequestHandler = async (
       });
     }
 
-    res
-      .status(201)
-      .json({ message: "Event created successfully", data: newEvent });
+    res.status(201).json({ message: "Event created successfully", data: newEvent });
     return;
   } catch (error) {
     res.status(500).json({ message: "Failed to create event", error });
@@ -49,20 +41,9 @@ export const createEvent: RequestHandler = async (
   }
 };
 
-export const updateEvent: RequestHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const updateEvent: RequestHandler = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
-  const {
-    title,
-    details,
-    location,
-    startDate,
-    endDate,
-    genreId,
-    thumbnailUrl,
-  } = req.body;
+  const { title, details, location, startDate, endDate, genreId, thumbnailUrl } = req.body;
   const userId = (req as any).user?.id;
   console.log("req: ", req);
   try {
@@ -81,9 +62,7 @@ export const updateEvent: RequestHandler = async (
       endDate,
       thumbnailUrl,
     });
-    res
-      .status(200)
-      .json({ message: "Event updated successfully", data: event });
+    res.status(200).json({ message: "Event updated successfully", data: event });
     return;
   } catch (error) {
     res.status(500).json({ message: "Failed to update event", error });
@@ -91,10 +70,7 @@ export const updateEvent: RequestHandler = async (
   }
 };
 
-export const deleteEvent: RequestHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const deleteEvent: RequestHandler = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   const userId = (req as any).user?.id;
 
@@ -115,35 +91,33 @@ export const deleteEvent: RequestHandler = async (
   }
 };
 
-// export const getAllEvents: RequestHandler = async (
-//   req: Request,
-//   res: Response
-// ): Promise<void> => {
-//   try {
-//     const events = await Event.findAll();
-//     res.status(200).json({ data: events });
-//     return;
-//   } catch (error) {
-//     res.status(500).json({ message: "Error retrieving events", error });
-//     return;
-//   }
-// };
-let count = 0;
-export const getAllEvents: RequestHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const getAllEvents: RequestHandler = async (req: Request, res: Response): Promise<void> => {
   try {
-    count = count + 1;
-    console.log("count: ", count);
-    const { page = 1, pageSize = 20 } = req.query;
+    let { page, pageSize, title, location } = req.query;
+    if (!page || !pageSize) {
+      page = "1";
+      pageSize = "10";
+    }
+
     const limit = parseInt(pageSize as string, 10);
     const offset = (parseInt(page as string, 10) - 1) * limit;
-    console.log("offset: ", limit, offset);
+
+    const whereClause: any = {};
+    if (title) {
+      whereClause.title = {
+        [Op.iLike]: `%${title}%`,
+      };
+    }
+    if (location) {
+      whereClause.location = {
+        [Op.iLike]: `%${location}%`,
+      };
+    }
+
     const events = await Event.findAll({
+      where: whereClause,
       limit,
       offset,
-      //order: [["startDate", "ASC"]], // Optional: order events
     });
 
     res.status(200).json({ data: events });
@@ -152,10 +126,7 @@ export const getAllEvents: RequestHandler = async (
   }
 };
 
-export const getEventsById: RequestHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const getEventsById: RequestHandler = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
 
   try {
@@ -174,10 +145,7 @@ export const getEventsById: RequestHandler = async (
   }
 };
 
-export const userEvents: RequestHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const userEvents: RequestHandler = async (req: Request, res: Response): Promise<void> => {
   const userId = (req as any).user?.id;
 
   try {
@@ -196,10 +164,7 @@ export const userEvents: RequestHandler = async (
   }
 };
 
-export const searchEvent: RequestHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const searchEvent: RequestHandler = async (req: Request, res: Response): Promise<void> => {
   //const userId = (req as any).user?.id;
   const { title } = req.query;
   console.log("Title: ", title);
