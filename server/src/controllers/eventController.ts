@@ -1,233 +1,69 @@
 import { Request, RequestHandler, Response } from "express";
+import * as eventService from "../services/eventService";
 import Event from "../models/Event";
 import { EventGenre } from "../models";
 import { Op } from "sequelize";
 
-export const createEvent: RequestHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const createEvent = async (req: Request, res: Response) => {
   try {
-    const {
-      title,
-      details,
-      thumbnailUrl,
-      location,
-      startDate,
-      endDate,
-      genreId,
-    } = req.body;
     const userId = (req as any).user?.id;
-
-    if (
-      !title ||
-      !details ||
-      !thumbnailUrl ||
-      !location ||
-      !startDate ||
-      !endDate ||
-      !userId ||
-      !genreId
-    ) {
-      res.status(400).json({ message: "Missing required fields" });
-      return;
-    }
-
-    const newEvent = await Event.create({
-      title,
-      details,
-      thumbnailUrl,
-      location,
-      startDate,
-      endDate,
-      userId,
-    });
-
-    if (!newEvent) res.status(500).json({ message: "Failed to create event" });
-    console.log("GenId: ", genreId);
-    for (let i = 0; i < genreId.length; i++) {
-      const genreid = genreId[i].value;
-      EventGenre.create({
-        eventId: newEvent.id,
-        genreId: genreid,
-      });
-    }
-
-    res
-      .status(201)
-      .json({ message: "Event created successfully", data: newEvent });
-    return;
-  } catch (error) {
-    res.status(500).json({ message: "Failed to create event", error });
-    return;
+    const eventData = { ...req.body, userId };
+    const newEvent = await eventService.createEvent(eventData);
+    res.status(201).json({ message: "Event created successfully", data: newEvent });
+  } catch (error: any) {
+    res.status(400).json({ message: error.message });
   }
 };
 
-export const updateEvent: RequestHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  const { id } = req.params;
-  const {
-    title,
-    details,
-    location,
-    startDate,
-    endDate,
-    genreId,
-    thumbnailUrl,
-  } = req.body;
-  const userId = (req as any).user?.id;
-  console.log("req: ", req);
+export const updateEvent = async (req: Request, res: Response) => {
   try {
-    const event = await Event.findOne({ where: { id, userId } });
-
-    if (!event) {
-      res.status(404).json({ message: "Event not found or unauthorized" });
-      return;
-    }
-
-    await event.update({
-      title,
-      details,
-      location,
-      startDate,
-      endDate,
-      thumbnailUrl,
-    });
-    res
-      .status(200)
-      .json({ message: "Event updated successfully", data: event });
-    return;
-  } catch (error) {
-    res.status(500).json({ message: "Failed to update event", error });
-    return;
+    const { id } = req.params;
+    const userId = (req as any).user?.id;
+    const updatedEvent = await eventService.updateEvent(parseInt(id), userId, req.body);
+    res.status(200).json({ message: "Event updated successfully", data: updatedEvent });
+  } catch (error: any) {
+    res.status(400).json({ message: error.message });
   }
 };
 
-export const deleteEvent: RequestHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  const { id } = req.params;
-  const userId = (req as any).user?.id;
-
+export const deleteEvent = async (req: Request, res: Response) => {
   try {
-    const event = await Event.findOne({ where: { id, userId } });
-
-    if (!event) {
-      res.status(404).json({ message: "Event not found or unauthorized" });
-      return;
-    }
-
-    await event.destroy();
+    const { id } = req.params;
+    const userId = (req as any).user?.id;
+    await eventService.deleteEvent(parseInt(id), userId);
     res.status(200).json({ message: "Event deleted successfully" });
-    return;
-  } catch (error) {
-    res.status(500).json({ message: "Failed to delete event", error });
-    return;
+  } catch (error: any) {
+    res.status(400).json({ message: error.message });
   }
 };
 
-export const getAllEvents: RequestHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const getAllEvents = async (req: Request, res: Response) => {
   try {
-    let { page, pageSize, title, location } = req.query;
-    if (!page || !pageSize) {
-      page = "1";
-      pageSize = "10";
-    }
-
-    const limit = parseInt(pageSize as string, 10);
-    const offset = (parseInt(page as string, 10) - 1) * limit;
-
-    const whereClause: any = {};
-    if (title) {
-      whereClause.title = {
-        [Op.iLike]: `%${title}%`,
-      };
-    }
-    if (location) {
-      whereClause.location = {
-        [Op.iLike]: `%${location}%`,
-      };
-    }
-
-    const events = await Event.findAll({
-      where: whereClause,
-      limit,
-      offset,
-    });
-
+    const { page = 1, pageSize = 10, title, location } = req.query;
+    const filters = { title, location };
+    const events = await eventService.getEvents(filters, parseInt(page as string), parseInt(pageSize as string));
     res.status(200).json({ data: events });
-  } catch (error) {
-    res.status(500).json({ message: "Error retrieving events", error });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
   }
 };
 
-export const getEventsById: RequestHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  const { id } = req.params;
-
+export const getEventById = async (req: Request, res: Response) => {
   try {
-    const event = await Event.findOne({ where: { id } });
-
-    if (!event) {
-      res.status(404).json({ message: "Event not found or unauthorized" });
-      return;
-    }
-
+    const { id } = req.params;
+    const event = await eventService.getEventById(parseInt(id));
     res.status(200).json({ data: event });
-    return;
-  } catch (error) {
-    res.status(500).json({ message: "Error retrieving events", error });
-    return;
+  } catch (error: any) {
+    res.status(404).json({ message: error.message });
   }
 };
 
-export const userEvents: RequestHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const userEvents: RequestHandler = async (req: Request, res: Response): Promise<void> => {
   const userId = (req as any).user?.id;
 
   try {
     const event = await Event.findAll({ where: { userId } });
 
-    if (!event) {
-      res.status(404).json({ message: "Event not found or unauthorized" });
-      return;
-    }
-
-    res.status(200).json({ data: event });
-    return;
-  } catch (error) {
-    res.status(500).json({ message: "Error retrieving events", error });
-    return;
-  }
-};
-
-export const searchEvent: RequestHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  //const userId = (req as any).user?.id;
-  const { title } = req.query;
-  console.log("Title: ", title);
-
-  try {
-    const event = await Event.findAll({
-      where: {
-        title: {
-          [Op.iLike]: `%${title}%`,
-        },
-      },
-    });
-    console.log("Event: ", event);
     if (!event) {
       res.status(404).json({ message: "Event not found or unauthorized" });
       return;
