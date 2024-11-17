@@ -1,17 +1,23 @@
 // src/routes/eventRoutes.ts
 
 import express from "express";
-import { createEvent, updateEvent, deleteEvent, getAllEvents, getEventsById, userEvents, searchEvent } from "../controllers/eventController";
+import { createEvent, updateEvent, deleteEvent, getAllEvents, getEventsById, userEvents } from "../controllers/eventController";
+import { createUpdateAttendy, getAllEventAttendy, getAttendy } from "../controllers/attendyController";
 import { authenticateToken } from "../middleware/authMiddleware";
 
 const router = express.Router();
 
 router.get("/", getAllEvents);
 router.get("/:id", getEventsById);
+router.get("/user-event", authenticateToken, userEvents);
 
 router.post("/", authenticateToken, createEvent);
 router.put("/:id", authenticateToken, updateEvent);
 router.delete("/:id", authenticateToken, deleteEvent);
-router.get("/user-event", authenticateToken, userEvents);
+
+// Attendy Routes
+router.get("/:eventId/user-attendy", authenticateToken, getAttendy);
+router.get("/:eventId/attendies", getAllEventAttendy);
+router.post("/:eventId/attendies", authenticateToken, createUpdateAttendy);
 
 export default router;
