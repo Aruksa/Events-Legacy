@@ -26,7 +26,7 @@ const EventDetails: React.FC = () => {
     fetchUserAttendy();
     fetchEventAttendy();
     // }, [id, goingCount, interestedCount, notGoingCount, goingUserName]);
-  }, [id, goingCount, interestedCount, notGoingCount, goingUserName]);
+  }, []);
 
   const handleStatusChange = async (status: number) => {
     console.log("select: ", selectedStatus);
@@ -65,7 +65,9 @@ const EventDetails: React.FC = () => {
 
   const token = localStorage.getItem("token");
   const fetchUserAttendy = async () => {
-    const res = await axios.get(`http://localhost:3000/api/attendy/get/${id}`, { headers: { authorization: `Bearer ${token}` } });
+    const res = await axios.get(`http://localhost:3000/api/attendy/get/${id}`, {
+      headers: { authorization: `Bearer ${token}` },
+    });
 
     //console.log("res: ",res.data);
     const status = res.data?.status;
@@ -73,7 +75,9 @@ const EventDetails: React.FC = () => {
   };
 
   const fetchEventAttendy = async () => {
-    const res = await axios.get(`http://localhost:3000/api/attendy/getallattendy/${id}`); // get all attendy of a event
+    const res = await axios.get(
+      `http://localhost:3000/api/attendy/getallattendy/${id}`
+    ); // get all attendy of a event
     const statusArr = res.data.arrStatus;
     const allAttendyId = res.data.arrUserId;
     //console.log('arr: ', res.data.arrUserId);
@@ -91,7 +95,9 @@ const EventDetails: React.FC = () => {
         else if (statusArr[i] === 3) tempNotGoing += 1;
       }
 
-      const res = await axios.get(`http://localhost:3000/api/users/getallusers`);
+      const res = await axios.get(
+        `http://localhost:3000/api/users/getallusers`
+      );
       console.log("res2:", res.data.users);
       const allUserId = res.data.users;
       const goingUserName = [];
@@ -115,11 +121,15 @@ const EventDetails: React.FC = () => {
 
   const fetchEventDetails = async () => {
     try {
-      const response = await axios.get(`http://localhost:3000/api/events/get/${id}`); // fatch event details
+      const response = await axios.get(
+        `http://localhost:3000/api/events/get/${id}`
+      ); // fatch event details
       const result = response.data.data;
       setEvent(result);
     } catch (err) {
-      setError("An error occurred while fetching event details. Please try again later.");
+      setError(
+        "An error occurred while fetching event details. Please try again later."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -139,7 +149,10 @@ const EventDetails: React.FC = () => {
 
   return (
     <div className="max-w-2xl mx-auto p-4">
-      <img src={event.thumbnailUrl} className="w-full h-64 object-cover rounded-lg mb-6" />
+      <img
+        src={event.thumbnailUrl}
+        className="w-full h-64 object-cover rounded-lg mb-6"
+      />
       <h1 className="text-3xl font-bold mb-4">{event.title}</h1>
       <div className="mb-6">
         <p className="text-gray-700 whitespace-pre-wrap">{event.details}</p>
@@ -151,26 +164,44 @@ const EventDetails: React.FC = () => {
       <div className="flex items-center">
         <Calendar className="w-5 h-5 mr-2 text-gray-500" />
         <span>
-          {new Date(event.startDate).toLocaleDateString()} - {new Date(event.endDate).toLocaleDateString()}
+          {new Date(event.startDate).toLocaleDateString()} -{" "}
+          {new Date(event.endDate).toLocaleDateString()}
         </span>
       </div>
       <div className="flex justify-between items-center">
         <div>
           <Menu>
             <MenuButton as={Button}>Attendy</MenuButton>
-            <MenuList>{goingUserName.length > 0 ? goingUserName.map((res) => <MenuItem>{res}</MenuItem>) : <MenuItem>No User</MenuItem>}</MenuList>
+            <MenuList>
+              {goingUserName.length > 0 ? (
+                goingUserName.map((res) => <MenuItem>{res}</MenuItem>)
+              ) : (
+                <MenuItem>No User</MenuItem>
+              )}
+            </MenuList>
           </Menu>
         </div>
         <div className="flex gap-4">
-          <div onClick={() => handleStatusChange(1)} className={selectedStatus === 1 ? "text-green-500" : "text-gray-500"}>
+          <div
+            onClick={() => handleStatusChange(1)}
+            className={
+              selectedStatus === 1 ? "text-green-500" : "text-gray-500"
+            }
+          >
             <IoMdCheckmarkCircle className="w-6 h-6 cursor-pointer" />
             <span>Going ({goingCount})</span>
           </div>
-          <div onClick={() => handleStatusChange(2)} className={selectedStatus === 2 ? "text-blue-500" : "text-gray-500"}>
+          <div
+            onClick={() => handleStatusChange(2)}
+            className={selectedStatus === 2 ? "text-blue-500" : "text-gray-500"}
+          >
             <FaStar className="w-6 h-6 cursor-pointer" />
             <span>Interested ({interestedCount})</span>
           </div>
-          <div onClick={() => handleStatusChange(3)} className={selectedStatus === 3 ? "text-red-500" : "text-gray-500"}>
+          <div
+            onClick={() => handleStatusChange(3)}
+            className={selectedStatus === 3 ? "text-red-500" : "text-gray-500"}
+          >
             <MdDangerous className="w-6 h-6 cursor-pointer" />
             <span>Not Going ({notGoingCount})</span>
           </div>
