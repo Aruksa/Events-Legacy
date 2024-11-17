@@ -33,7 +33,7 @@ const YourEvents: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        "http://localhost:3000/api/events/userevent",
+        "http://localhost:3000/api/events/user-event",
         {
           headers: { authorization: `Bearer ${token}` },
         }

@@ -3,12 +3,32 @@ import Event from "../models/Event";
 import { EventGenre } from "../models";
 import { Op } from "sequelize";
 
-export const createEvent: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+export const createEvent: RequestHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    const { title, details, thumbnailUrl, location, startDate, endDate, genreId } = req.body;
+    const {
+      title,
+      details,
+      thumbnailUrl,
+      location,
+      startDate,
+      endDate,
+      genreId,
+    } = req.body;
     const userId = (req as any).user?.id;
 
-    if (!title || !details || !thumbnailUrl || !location || !startDate || !endDate || !userId || !genreId) {
+    if (
+      !title ||
+      !details ||
+      !thumbnailUrl ||
+      !location ||
+      !startDate ||
+      !endDate ||
+      !userId ||
+      !genreId
+    ) {
       res.status(400).json({ message: "Missing required fields" });
       return;
     }
@@ -33,7 +53,9 @@ export const createEvent: RequestHandler = async (req: Request, res: Response): 
       });
     }
 
-    res.status(201).json({ message: "Event created successfully", data: newEvent });
+    res
+      .status(201)
+      .json({ message: "Event created successfully", data: newEvent });
     return;
   } catch (error) {
     res.status(500).json({ message: "Failed to create event", error });
@@ -41,9 +63,20 @@ export const createEvent: RequestHandler = async (req: Request, res: Response): 
   }
 };
 
-export const updateEvent: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+export const updateEvent: RequestHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { id } = req.params;
-  const { title, details, location, startDate, endDate, genreId, thumbnailUrl } = req.body;
+  const {
+    title,
+    details,
+    location,
+    startDate,
+    endDate,
+    genreId,
+    thumbnailUrl,
+  } = req.body;
   const userId = (req as any).user?.id;
   console.log("req: ", req);
   try {
@@ -62,7 +95,9 @@ export const updateEvent: RequestHandler = async (req: Request, res: Response): 
       endDate,
       thumbnailUrl,
     });
-    res.status(200).json({ message: "Event updated successfully", data: event });
+    res
+      .status(200)
+      .json({ message: "Event updated successfully", data: event });
     return;
   } catch (error) {
     res.status(500).json({ message: "Failed to update event", error });
@@ -70,7 +105,10 @@ export const updateEvent: RequestHandler = async (req: Request, res: Response): 
   }
 };
 
-export const deleteEvent: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+export const deleteEvent: RequestHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { id } = req.params;
   const userId = (req as any).user?.id;
 
@@ -91,7 +129,10 @@ export const deleteEvent: RequestHandler = async (req: Request, res: Response): 
   }
 };
 
-export const getAllEvents: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+export const getAllEvents: RequestHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     let { page, pageSize, title, location } = req.query;
     if (!page || !pageSize) {
@@ -126,7 +167,10 @@ export const getAllEvents: RequestHandler = async (req: Request, res: Response):
   }
 };
 
-export const getEventsById: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+export const getEventsById: RequestHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { id } = req.params;
 
   try {
@@ -145,7 +189,10 @@ export const getEventsById: RequestHandler = async (req: Request, res: Response)
   }
 };
 
-export const userEvents: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+export const userEvents: RequestHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const userId = (req as any).user?.id;
 
   try {
@@ -164,7 +211,10 @@ export const userEvents: RequestHandler = async (req: Request, res: Response): P
   }
 };
 
-export const searchEvent: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+export const searchEvent: RequestHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   //const userId = (req as any).user?.id;
   const { title } = req.query;
   console.log("Title: ", title);

@@ -13,9 +13,6 @@ const EventCreationForm: React.FC = () => {
     title: "",
     details: "",
     location: "",
-    title: "",
-    details: "",
-    location: "",
     startDate: todayAsLocaleString(),
     endDate: todayAsLocaleString(),
     genreId: [],
@@ -30,16 +27,9 @@ const EventCreationForm: React.FC = () => {
       value: "",
     },
   ]);
-  const [options, setOption] = useState([
-    {
-      label: "",
-      value: "",
-    },
-  ]);
 
   const toast = useToast();
 
-  const token = localStorage.getItem("token");
   const token = localStorage.getItem("token");
   useEffect(() => {
     fetchGenres(token as string);
@@ -50,15 +40,8 @@ const EventCreationForm: React.FC = () => {
       const response = await axios.get("http://localhost:3000/api/genres", {
         headers: { authorization: `Bearer ${token}` },
       });
-      const response = await axios.get("http://localhost:3000/api/genres", {
-        headers: { authorization: `Bearer ${token}` },
-      });
       console.log("data", response.data.data);
 
-      const result = response.data.data.map((res: genre) => ({
-        label: res.name,
-        value: res.id,
-      }));
       const result = response.data.data.map((res: genre) => ({
         label: res.name,
         value: res.id,
@@ -75,11 +58,7 @@ const EventCreationForm: React.FC = () => {
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
     const { name, value } = e.target;
-    setEventData((prev) => ({ ...prev, [name]: value }));
     setEventData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -106,30 +85,21 @@ const EventCreationForm: React.FC = () => {
     const cloudName = "dvrwupgzz";
     const presetName = "fr3ws4o";
 
-
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       const formData = new FormData();
       formData.append("file", file);
       formData.append("upload_preset", presetName);
 
-      formData.append("file", file);
-      formData.append("upload_preset", presetName);
-
       fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-        method: "POST",
         method: "POST",
         body: formData,
       })
         .then((response) => response.json())
         .then((data) => {
-        .then((response) => response.json())
-        .then((data) => {
           console.log("Res:", data);
           setEventData((prev) => ({ ...prev, thumbnailUrl: data.secure_url }));
-          setEventData((prev) => ({ ...prev, thumbnailUrl: data.secure_url }));
         })
-        .catch((error) => console.log(error));
         .catch((error) => console.log(error));
     }
   };
@@ -142,7 +112,7 @@ const EventCreationForm: React.FC = () => {
     e.preventDefault();
     const token = localStorage.getItem("token");
     axios
-      .post("http://localhost:3000/api/events/create", eventData, {
+      .post("http://localhost:3000/api/events", eventData, {
         headers: { authorization: `Bearer ${token}` },
       })
       .then((res) => {
@@ -151,29 +121,19 @@ const EventCreationForm: React.FC = () => {
           title: "Event Created",
           description: "Event Created successfully",
           status: "success",
-          title: "Event Created",
-          description: "Event Created successfully",
-          status: "success",
           duration: 2000,
           isClosable: true,
         });
-        });
         navigate("/");
       })
-      .catch((err) => {
-        console.log(err);
       .catch((err) => {
         console.log(err);
         toast({
           title: "Event",
           description: "Oops! Event not created.",
           status: "error",
-          title: "Event",
-          description: "Oops! Event not created.",
-          status: "error",
           duration: 2000,
           isClosable: true,
-        });
         });
       });
   };
@@ -344,4 +304,3 @@ const EventCreationForm: React.FC = () => {
 };
 
 export default EventCreationForm;
-
