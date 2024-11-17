@@ -1,7 +1,7 @@
 const dbConfig = {
   DB: "EventCreation",
-  USER: "root",
-  PASSWORD: "asdf;lkj",
+  USER: "postgres",
+  PASSWORD: "admin",
   HOST: "127.0.0.1",
   dialect: "postgres",
 };
