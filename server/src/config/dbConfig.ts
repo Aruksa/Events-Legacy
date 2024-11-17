@@ -3,7 +3,7 @@ const dbConfig = {
   USER: "postgres",
   PASSWORD: "admin",
   HOST: "127.0.0.1",
-  dialect: "postgres"
-}
+  dialect: "postgres",
+};
 
 export default dbConfig;
