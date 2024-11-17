@@ -1,28 +1,17 @@
 // src/routes/eventRoutes.ts
 
 import express from "express";
-import {
-  createEvent,
-  updateEvent,
-  deleteEvent,
-  getAllEvents,
-  getEventsById,
-  userEvents,
-  searchEvent,
-} from "../controllers/eventController";
+import { createEvent, updateEvent, deleteEvent, getAllEvents, getEventsById, userEvents, searchEvent } from "../controllers/eventController";
 import { authenticateToken } from "../middleware/authMiddleware";
 
 const router = express.Router();
 
-// Public route to get all events
-router.get("/all", getAllEvents);
-router.get("/get/:id", getEventsById);
-router.get("/searchtitle", searchEvent);
+router.get("/", getAllEvents);
+router.get("/:id", getEventsById);
 
-// Protected routes for authenticated users
-router.post("/create", authenticateToken, createEvent);
-router.put("/update/:id", authenticateToken, updateEvent);
-router.delete("/delete/:id", authenticateToken, deleteEvent);
-router.get("/userevent", authenticateToken, userEvents);
+router.post("/", authenticateToken, createEvent);
+router.put("/:id", authenticateToken, updateEvent);
+router.delete("/:id", authenticateToken, deleteEvent);
+router.get("/user-event", authenticateToken, userEvents);
 
 export default router;
