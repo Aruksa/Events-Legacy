@@ -17,21 +17,18 @@ function App() {
   const [isLoading, setLoading] = useState<boolean>(true);
   const pageSize = 30;
 
-  // For debounching
+  // For debouncing title and location inputs
   const [inputValue, setInputValue] = useState("");
   const [debouncedInputValue, setDebouncedInputValue] = useState("");
+  const [locationValue, setLocationValue] = useState("");
+  const [debouncedLocationValue, setDebouncedLocationValue] = useState("");
 
   const searchByTitleRef = createRef<HTMLInputElement>();
   const searchByLocationRef = createRef<HTMLInputElement>();
 
   const fetchEvents = async () => {
-    let count = 0;
-
     try {
-      count = count + 1;
-      console.log("fatchEventsCount: ", count);
-      console.log("Page: ", page);
-      const response = await axios.get(`http://localhost:3000/api/events/all`, {
+      const response = await axios.get(`http://localhost:3000/api/events`, {
         params: { page, pageSize },
       });
       const res = response.data.data;
@@ -62,13 +59,11 @@ function App() {
 
   // Function to load more events when the user scrolls to the bottom
   const handleScroll = () => {
-    console.log("handleScroll start");
     if (
       window.innerHeight + document.documentElement.scrollTop !==
       document.documentElement.offsetHeight
     )
       return;
-    console.log("handralScroll end");
     setPage((prevPage) => prevPage + 1);
   };
 
@@ -77,7 +72,7 @@ function App() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // For checking user is login or not
+  // For checking if the user is logged in
   useEffect(() => {
     setLoading(true);
 
@@ -87,7 +82,6 @@ function App() {
         headers: { authorization: `Bearer ${token}` },
       })
       .then((res) => {
-        console.log("resData: ", res.data);
         setIsLogin(res.data.status);
         setLoginUserId(res.data.id);
       })
@@ -103,53 +97,41 @@ function App() {
     setInputValue(event.target.value);
   };
 
-  React.useEffect(() => {
+  const handleLocationChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setLocationValue(event.target.value);
+  };
+
+  // Debounce for title input
+  useEffect(() => {
     const timeoutId = setTimeout(() => {
       setDebouncedInputValue(inputValue);
     }, 500);
     return () => clearTimeout(timeoutId);
-  }, [inputValue, 500]);
+  }, [inputValue]);
 
-  //   useEffect( () => {
-  //     try {
-  //       if (debouncedInputValue == '') {
-  //        fetchEvents()
-  //       return;
-  //     }
-  //       axios.get(`http://localhost:3000/api/events/searchtitle?title=${encodeURIComponent(debouncedInputValue)}`).then((response)=> {
-  //       const searchResults = response.data.data;
-  // // console.log('src Res: ', searchResults);
-  //       const newEvents = searchResults.map((event: event) => ({
-  //       id: event.id,
-  //       title: event.title,
-  //       details: event.details,
-  //       thumbnailUrl: event.thumbnailUrl,
-  //       location: event.location,
-  //       userId: event.userId,
-  //       endDate: event.endDate,
-  //       startDate: event.startDate
-  //       }));
-  //       setEvents(newEvents);
-  //     })
-  //     } catch (error) {
-  //       console.error('Error fetching search results:', error);
-  //     }
-  //   }, [debouncedInputValue])
+  // Debounce for location input
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedLocationValue(locationValue);
+    }, 500);
+    return () => clearTimeout(timeoutId);
+  }, [locationValue]);
 
+  // Fetch search results based on title or location
   useEffect(() => {
     const fetchSearchResults = async () => {
       try {
-        if (debouncedInputValue === "") {
-          console.log("Empty Debounce call fetchEvents");
-          await fetchEvents(); // Fetch all events if no input value
+        if (!debouncedInputValue && !debouncedLocationValue) {
+          await fetchEvents(); // Fetch all events if no input or location value
           return;
         }
-        console.log("Fetch data with title");
-        const response = await axios.get(
-          `http://localhost:3000/api/events/searchtitle?title=${encodeURIComponent(
-            debouncedInputValue
-          )}`
-        );
+
+        const response = await axios.get(`http://localhost:3000/api/events`, {
+          params: {
+            title: debouncedInputValue || undefined,
+            location: debouncedLocationValue || undefined,
+          },
+        });
         const searchResults = response.data.data;
 
         const newEvents = searchResults.map((event: EventData) => ({
@@ -170,44 +152,12 @@ function App() {
     };
 
     fetchSearchResults();
-  }, [debouncedInputValue]);
-
-  //   const onSearch = debounce(async () => {
-  //     const title = searchByTitleRef.current?.value.trim();
-  //     const location = searchByLocationRef.current?.value.trim();
-
-  //     if (!title) {
-  //       await fetchEvents(); // Fetch all events if the title is empty
-  //       return;
-  //     }
-
-  //     try {
-  //       const response = await axios.get(`http://localhost:3000/api/events/searchtitle?title=${encodeURIComponent(title)}`)
-  //       const searchResults = response.data.data;
-  // // console.log('src Res: ', searchResults);
-  //       const newEvents = searchResults.map((event: event) => ({
-  //       id: event.id,
-  //       title: event.title,
-  //       details: event.details,
-  //       thumbnailUrl: event.thumbnailUrl,
-  //       location: event.location,
-  //       userId: event.userId,
-  //       endDate: event.endDate,
-  //       startDate: event.startDate
-  //       }));
-  //       setEvents(newEvents);
-
-  //     } catch (error) {
-  //       console.error('Error fetching search results:', error);
-  //     }
-  //   }, 3000);
-  //console.log('Events: ', events);
+  }, [debouncedInputValue, debouncedLocationValue]);
 
   const logout = () => {
     localStorage.removeItem("token");
     setIsLogin(false);
   };
-  // console.log("Login: ", isLogin)
 
   if (isLoading)
     return (
@@ -242,6 +192,7 @@ function App() {
                   className="m-0"
                   rounded={"none"}
                   placeholder="Search by location"
+                  onChange={handleLocationChange}
                 />
                 <InputRightAddon children={<Search className="h-5 w-5" />} />
               </InputGroup>
@@ -267,7 +218,7 @@ function App() {
                       logout();
                     }}
                   >
-                    <Link to="/"></Link>Log out
+                    Log out
                   </button>
                 </>
               ) : (

@@ -21,7 +21,6 @@ app.use("/api", loginorNot);
 app.use("/api/users", userRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/genres", genreRouters);
-app.use("/api/attendy", attendyRouters);
 
 sequelize.sync({ alter: true }).then(() => {
   console.log("Database connected and User table created");
