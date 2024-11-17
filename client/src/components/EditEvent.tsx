@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -9,8 +9,8 @@ import {
   Textarea,
   VStack,
   useToast,
-} from '@chakra-ui/react';
-import axios from 'axios';
+} from "@chakra-ui/react";
+import axios from "axios";
 
 interface EventData {
   title: string;
@@ -27,28 +27,31 @@ const EditEvent: React.FC = () => {
   const toast = useToast();
 
   const [eventData, setEventData] = useState<EventData>({
-    title: '',
-    details: '',
-    location: '',
-    startDate: '',
-    endDate: '',
-    thumbnailUrl: '',
+    title: "",
+    details: "",
+    location: "",
+    startDate: "",
+    endDate: "",
+    thumbnailUrl: "",
   });
 
   useEffect(() => {
     const fetchEventDetails = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(`http://localhost:3000/api/events/get/${id}`, {
-          headers: { authorization: `Bearer ${token}` },
-        });
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          `http://localhost:3000/api/events/${id}`,
+          {
+            headers: { authorization: `Bearer ${token}` },
+          }
+        );
         setEventData(response.data);
       } catch (error) {
-        console.error('Error fetching event details:', error);
+        console.error("Error fetching event details:", error);
         toast({
-          title: 'Error',
-          description: 'Failed to fetch event details',
-          status: 'error',
+          title: "Error",
+          description: "Failed to fetch event details",
+          status: "error",
           duration: 3000,
           isClosable: true,
         });
@@ -58,7 +61,9 @@ const EditEvent: React.FC = () => {
     fetchEventDetails();
   }, [id, toast]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setEventData((prev) => ({ ...prev, [name]: value }));
   };
@@ -66,47 +71,47 @@ const EditEvent: React.FC = () => {
     console.log("Inside FileChange");
     const cloudName = "dvrwupgzz";
     const presetName = "fr3ws4o";
-    
+
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', presetName);
-  
+      formData.append("file", file);
+      formData.append("upload_preset", presetName);
+
       fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-        method: 'POST',
+        method: "POST",
         body: formData,
       })
-        .then(response => response.json())
-        .then(data => {
+        .then((response) => response.json())
+        .then((data) => {
           console.log("Res:", data);
-          setEventData(prev => ({ ...prev, thumbnailUrl: data.secure_url }));
+          setEventData((prev) => ({ ...prev, thumbnailUrl: data.secure_url }));
         })
-        .catch(error => console.log(error));
+        .catch((error) => console.log(error));
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
-      await axios.put(`http://localhost:3000/api/events/update/${id}`, eventData, {
+      const token = localStorage.getItem("token");
+      await axios.put(`http://localhost:3000/api/events/${id}`, eventData, {
         headers: { authorization: `Bearer ${token}` },
       });
       toast({
-        title: 'Success',
-        description: 'Event updated successfully',
-        status: 'success',
+        title: "Success",
+        description: "Event updated successfully",
+        status: "success",
         duration: 3000,
         isClosable: true,
       });
-      navigate('/');
+      navigate("/");
     } catch (error) {
-      console.error('Error updating event:', error);
+      console.error("Error updating event:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to update event',
-        status: 'error',
+        title: "Error",
+        description: "Failed to update event",
+        status: "error",
         duration: 3000,
         isClosable: true,
       });

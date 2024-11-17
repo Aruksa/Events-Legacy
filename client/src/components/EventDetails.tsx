@@ -52,7 +52,7 @@ const EventDetails: React.FC = () => {
     // Update the status in backend
     try {
       await axios.post(
-        `http://localhost:3000/api/attendy/create/${id}`,
+        `http://localhost:3000/api/events/${id}/attendies`,
         { status },
         {
           headers: { authorization: `Bearer ${token}` },
@@ -65,9 +65,12 @@ const EventDetails: React.FC = () => {
 
   const token = localStorage.getItem("token");
   const fetchUserAttendy = async () => {
-    const res = await axios.get(`http://localhost:3000/api/attendy/get/${id}`, {
-      headers: { authorization: `Bearer ${token}` },
-    });
+    const res = await axios.get(
+      `http://localhost:3000/api/events/${id}/user-attendy`,
+      {
+        headers: { authorization: `Bearer ${token}` },
+      }
+    );
 
     //console.log("res: ",res.data);
     const status = res.data?.status;
@@ -76,7 +79,7 @@ const EventDetails: React.FC = () => {
 
   const fetchEventAttendy = async () => {
     const res = await axios.get(
-      `http://localhost:3000/api/attendy/getallattendy/${id}`
+      `http://localhost:3000/api/events/${id}/attendies`
     ); // get all attendy of a event
     const statusArr = res.data.arrStatus;
     const allAttendyId = res.data.arrUserId;
@@ -122,7 +125,7 @@ const EventDetails: React.FC = () => {
   const fetchEventDetails = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:3000/api/events/get/${id}`
+        `http://localhost:3000/api/events/${id}`
       ); // fatch event details
       const result = response.data.data;
       setEvent(result);
