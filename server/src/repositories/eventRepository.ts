@@ -5,7 +5,11 @@ export const createEvent = async (eventData: Partial<Event>) => {
   return await Event.create(eventData);
 };
 
-export const updateEventById = async (id: number, userId: number, updateData: Partial<Event>) => {
+export const updateEventById = async (
+  id: number,
+  userId: number,
+  updateData: Partial<Event>
+) => {
   return await Event.findOne({ where: { id, userId } }).then((event) => {
     if (event) return event.update(updateData);
     return null;
@@ -26,9 +30,13 @@ export const findEventById = async (id: number) => {
   return await Event.findOne({ where: { id } });
 };
 
-export const findEvents = async (query: any, limit: number, offset: number) => {
+export const findEvents = async (
+  whereClause: any,
+  limit: number,
+  offset: number
+) => {
   return await Event.findAll({
-    where: query,
+    where: whereClause,
     limit,
     offset,
   });

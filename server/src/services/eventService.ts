@@ -1,8 +1,10 @@
 import { Op } from "sequelize";
 import * as eventRepository from "../repositories/eventRepository";
+import { composeFilters } from "../filters/eventFilters/filterComposer";
 
 export const createEvent = async (data: any) => {
-  const { title, details, location, startDate, endDate, thumbnailUrl, userId } = data;
+  const { title, details, location, startDate, endDate, thumbnailUrl, userId } =
+    data;
   if (!title || !details || !location || !startDate || !endDate || !userId) {
     throw new Error("Missing required fields");
   }
@@ -20,17 +22,16 @@ export const deleteEvent = async (id: number, userId: number) => {
   if (!success) throw new Error("Event not found or unauthorized");
 };
 
-export const getEvents = async (filters: any, page: number, pageSize: number) => {
+export const getEvents = async (
+  filters: any,
+  page: number,
+  pageSize: number
+) => {
   const limit = pageSize;
   const offset = (page - 1) * limit;
 
-  const whereClause: any = {};
-  if (filters.title) {
-    whereClause.title = { [Op.iLike]: `%${filters.title}%` };
-  }
-  if (filters.location) {
-    whereClause.location = { [Op.iLike]: `%${filters.location}%` };
-  }
+  // Dynamically compose filters
+  const whereClause = composeFilters(filters);
 
   return await eventRepository.findEvents(whereClause, limit, offset);
 };

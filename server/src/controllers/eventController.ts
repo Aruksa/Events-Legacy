@@ -9,7 +9,9 @@ export const createEvent = async (req: Request, res: Response) => {
     const userId = (req as any).user?.id;
     const eventData = { ...req.body, userId };
     const newEvent = await eventService.createEvent(eventData);
-    res.status(201).json({ message: "Event created successfully", data: newEvent });
+    res
+      .status(201)
+      .json({ message: "Event created successfully", data: newEvent });
   } catch (error: any) {
     res.status(400).json({ message: error.message });
   }
@@ -19,8 +21,14 @@ export const updateEvent = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userId = (req as any).user?.id;
-    const updatedEvent = await eventService.updateEvent(parseInt(id), userId, req.body);
-    res.status(200).json({ message: "Event updated successfully", data: updatedEvent });
+    const updatedEvent = await eventService.updateEvent(
+      parseInt(id),
+      userId,
+      req.body
+    );
+    res
+      .status(200)
+      .json({ message: "Event updated successfully", data: updatedEvent });
   } catch (error: any) {
     res.status(400).json({ message: error.message });
   }
@@ -39,9 +47,12 @@ export const deleteEvent = async (req: Request, res: Response) => {
 
 export const getAllEvents = async (req: Request, res: Response) => {
   try {
-    const { page = 1, pageSize = 10, title, location } = req.query;
-    const filters = { title, location };
-    const events = await eventService.getEvents(filters, parseInt(page as string), parseInt(pageSize as string));
+    const { page = 1, pageSize = 10, ...filters } = req.query;
+    const events = await eventService.getEvents(
+      filters,
+      parseInt(page as string),
+      parseInt(pageSize as string)
+    );
     res.status(200).json({ data: events });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -58,7 +69,10 @@ export const getEventById = async (req: Request, res: Response) => {
   }
 };
 
-export const userEvents: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+export const userEvents: RequestHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const userId = (req as any).user?.id;
 
   try {
