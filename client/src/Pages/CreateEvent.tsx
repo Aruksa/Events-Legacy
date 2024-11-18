@@ -1,12 +1,12 @@
 import "@preline/select";
-import axios from "axios";
 import { Input, useToast } from "@chakra-ui/react";
-import { genre } from "../Interfaces/genre";
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { MultiSelect } from "react-multi-select-component";
 import { todayAsLocaleString } from "@/common/dateExtensions";
 import NavBar from "@/components/NavBar";
+import { fetchGenres } from "@/services/genreService";
+import { createEvent } from "@/services/eventService";
 
 const EventCreationForm: React.FC = () => {
   const [eventData, setEventData] = useState({
@@ -19,41 +19,23 @@ const EventCreationForm: React.FC = () => {
     thumbnailUrl: null as string | null,
   });
 
-  //const [genres, setGenres] = useState<genre[]>([]);
   const [selected, setSelected] = useState([]);
-  const [options, setOption] = useState([
-    {
-      label: "",
-      value: "",
-    },
-  ]);
-
+  const [options, setOptions] = useState([]);
   const toast = useToast();
-
+  const navigate = useNavigate();
   const token = localStorage.getItem("token");
+
   useEffect(() => {
-    fetchGenres(token as string);
+    const loadGenres = async () => {
+      try {
+        const genres = await fetchGenres(token as string);
+        setOptions(genres);
+      } catch (error) {
+        console.error("Failed to load genres:", error);
+      }
+    };
+    if (token) loadGenres();
   }, [token]);
-
-  const fetchGenres = async (token: string) => {
-    try {
-      const response = await axios.get("http://localhost:3000/api/genres", {
-        headers: { authorization: `Bearer ${token}` },
-      });
-      console.log("data", response.data.data);
-
-      const result = response.data.data.map((res: genre) => ({
-        label: res.name,
-        value: res.id,
-      }));
-      setOption(result);
-      //console.log("Res: ",result);
-      //setGenres(response.data.data);
-    } catch (error) {
-      console.error("Error fetching genres:", error);
-    }
-  };
-  console.log("Gen: ", selected);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -62,26 +44,7 @@ const EventCreationForm: React.FC = () => {
     setEventData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   console.log("inside Filechange");
-  //   const cloudName = "dvrwupgzz";
-  //   const presetName = "fr3ws4o";
-  //   if (e.target.files && e.target.files) {
-  //     const file = e.target.files[0];
-  //     const formData = new FormData();
-  //     formData.append('file', file);
-  //     formData.append('upload_preset', presetName);
-  //     axios.post(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, formData)
-  //       .then(res => {
-  //         console.log("Res: ", res.data);
-  //         setEventData(prev => ({ ...prev, thumbnailUrl: res.data.secure_url }))
-  //       })
-  //       .catch(err => console.log(err));
-  //   }
-  // };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("Inside FileChange");
     const cloudName = "dvrwupgzz";
     const presetName = "fr3ws4o";
 
@@ -97,45 +60,34 @@ const EventCreationForm: React.FC = () => {
       })
         .then((response) => response.json())
         .then((data) => {
-          console.log("Res:", data);
           setEventData((prev) => ({ ...prev, thumbnailUrl: data.secure_url }));
         })
-        .catch((error) => console.log(error));
+        .catch((error) => console.error(error));
     }
   };
 
-  const navigate = useNavigate();
-  eventData.genreId = selected;
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    console.log(eventData);
-
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
-    axios
-      .post("http://localhost:3000/api/events", eventData, {
-        headers: { authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        console.log(res);
-        toast({
-          title: "Event Created",
-          description: "Event Created successfully",
-          status: "success",
-          duration: 2000,
-          isClosable: true,
-        });
-        navigate("/");
-      })
-      .catch((err) => {
-        console.log(err);
-        toast({
-          title: "Event",
-          description: "Oops! Event not created.",
-          status: "error",
-          duration: 2000,
-          isClosable: true,
-        });
+    try {
+      eventData.genreId = selected;
+      await createEvent(eventData, token as string);
+      toast({
+        title: "Event Created",
+        description: "Event Created successfully",
+        status: "success",
+        duration: 2000,
+        isClosable: true,
       });
+      navigate("/");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Oops! Event not created.",
+        status: "error",
+        duration: 2000,
+        isClosable: true,
+      });
+    }
   };
   //{console.log(eventData.picture)}
   return (
