@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 # Create your models here.
 
@@ -10,7 +11,10 @@ class Events(models.Model):
     location = models.CharField(max_length=255)
     start_date = models.DateField()
     end_date = models.DateField()
-    user_id = models.IntegerField()
+
+    # One-to-many relationship with User (One user can have many events)
+    user = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, related_name='events')
 
 
 class Genres(models.Model):
