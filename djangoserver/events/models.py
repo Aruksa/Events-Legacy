@@ -11,3 +11,12 @@ class Events(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     user_id = models.IntegerField()
+
+
+class Genres(models.Model):
+    name = models.CharField(max_length=100)
+
+
+class EventsGenres(models.Model):
+    event_id = models.ForeignKey(Events, on_delete=models.CASCADE)
+    genre_id = models.ForeignKey(Genres, on_delete=models.SET_NULL, null=True)
