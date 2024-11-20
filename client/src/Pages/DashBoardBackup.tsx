@@ -1,17 +1,21 @@
-import React, { useState, useEffect, createRef } from "react";
+import React from "react";
 import axios from "axios";
 import logo from "../images/ui-1.svg";
 import { Link } from "react-router-dom";
 import EventCard from "@/components/EventCard";
 import { Search, Globe, Menu } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { Input, InputGroup, InputRightAddon } from "@chakra-ui/react";
+import { event, EventData } from "@/Interfaces/event";
+import { createRef, useEffect, useState } from "react";
 import DefaultSpinner from "@/components/DefaultSpinner";
+import { Input, InputGroup, InputRightAddon } from "@chakra-ui/react";
 
 function App() {
   const [page, setPage] = useState(1);
   const [isLogin, setIsLogin] = useState(false);
   const [loginUserId, setLoginUserId] = useState(0);
+  const [events, setEvents] = useState<EventData[]>([]);
+  const [isLoading, setLoading] = useState<boolean>(true);
+  const pageSize = 30;
 
   // For debouncing title and location inputs
   const [inputValue, setInputValue] = useState("");
@@ -21,6 +25,77 @@ function App() {
 
   const searchByTitleRef = createRef<HTMLInputElement>();
   const searchByLocationRef = createRef<HTMLInputElement>();
+
+  const fetchEvents = async () => {
+    try {
+      const response = await axios.get(`http://localhost:3000/api/events`, {
+        params: { page, pageSize },
+      });
+      const res = response.data.data;
+      if (res) {
+        const newEvents = res.map((event: event) => ({
+          id: event.id,
+          title: event.title,
+          details: event.details,
+          thumbnailUrl: event.thumbnailUrl,
+          location: event.location,
+          userId: event.userId,
+          endDate: event.endDate,
+          startDate: event.startDate,
+        }));
+        setEvents(newEvents);
+      } else {
+        throw new Error("Failed to fetch event details");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // Fetch the initial page of events
+  useEffect(() => {
+    fetchEvents();
+  }, [page]);
+
+  // Function to load more events when the user scrolls to the bottom
+  const handleScroll = () => {
+    if (window.innerHeight + document.documentElement.scrollTop !== document.documentElement.offsetHeight) return;
+    setPage((prevPage) => prevPage + 1);
+  };
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // For checking if the user is logged in
+  useEffect(() => {
+    setLoading(true);
+
+    const token = localStorage.getItem("token");
+    axios
+      .get("http://localhost:3000/api/me", {
+        headers: { authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        setIsLogin(res.data.status);
+        setLoginUserId(res.data.id);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+
+    fetchEvents();
+    setLoading(false);
+  }, []);
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(event.target.value);
+  };
+
+  const handleLocationChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setLocationValue(event.target.value);
+  };
 
   // Debounce for title input
   useEffect(() => {
@@ -38,50 +113,42 @@ function App() {
     return () => clearTimeout(timeoutId);
   }, [locationValue]);
 
-  // Fetch events using TanStack Query
-
-  const fetchEvents = async ({ queryKey }: { queryKey: any }) => {
-    const [_key, { page, title, location }] = queryKey;
-
-    // Clear filters when input fields are empty
-    const params: Record<string, any> = { page, pageSize: 30 };
-    if (title) params.title = title;
-    if (location) params.location = location;
-
-    const response = await axios.get("http://localhost:3000/api/events", {
-      params,
-    });
-    return response.data.data;
-  };
-
-  const { data: events = [], isLoading } = useQuery({
-    queryKey: ["events", { page, title: debouncedInputValue, location: debouncedLocationValue }],
-    queryFn: fetchEvents,
-  });
-
-  // Check user login status
+  // Fetch search results based on title or location
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    axios
-      .get("http://localhost:3000/api/me", {
-        headers: { authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        setIsLogin(res.data.status);
-        setLoginUserId(res.data.id);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  }, []);
+    const fetchSearchResults = async () => {
+      try {
+        if (!debouncedInputValue && !debouncedLocationValue) {
+          await fetchEvents(); // Fetch all events if no input or location value
+          return;
+        }
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(event.target.value);
-  };
+        const response = await axios.get(`http://localhost:3000/api/events`, {
+          params: {
+            title: debouncedInputValue || undefined,
+            location: debouncedLocationValue || undefined,
+          },
+        });
+        const searchResults = response.data.data;
 
-  const handleLocationChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setLocationValue(event.target.value);
-  };
+        const newEvents = searchResults.map((event: EventData) => ({
+          id: event.id,
+          title: event.title,
+          details: event.details,
+          thumbnailUrl: event.thumbnailUrl,
+          location: event.location,
+          userId: event.userId,
+          endDate: event.endDate,
+          startDate: event.startDate,
+        }));
+
+        setEvents(newEvents);
+      } catch (error) {
+        console.error("Error fetching search results:", error);
+      }
+    };
+
+    fetchSearchResults();
+  }, [debouncedInputValue, debouncedLocationValue]);
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -108,23 +175,8 @@ function App() {
               </a>
               {/* Search Bar */}
               <InputGroup>
-                <Input
-                  ref={searchByTitleRef}
-                  type="text"
-                  className="m-0 rounded-l-lg"
-                  placeholder="Search by event title"
-                  value={inputValue} // Bind to state
-                  onChange={handleInputChange} // Update state
-                />
-                <Input
-                  ref={searchByLocationRef}
-                  type="text"
-                  className="m-0"
-                  rounded={"none"}
-                  placeholder="Search by location"
-                  value={locationValue} // Bind to state
-                  onChange={handleLocationChange} // Update state
-                />
+                <Input ref={searchByTitleRef} type="text" className="m-0 rounded-l-lg" placeholder="Search by event title" onChange={handleInputChange} />
+                <Input ref={searchByLocationRef} type="text" className="m-0" rounded={"none"} placeholder="Search by location" onChange={handleLocationChange} />
                 <InputRightAddon children={<Search className="h-5 w-5" />} />
               </InputGroup>
             </div>
@@ -171,19 +223,7 @@ function App() {
         </div>
       </header>
 
-      {/* Events List */}
-      <EventCard events={events} setEvents={() => {}} loginUserId={loginUserId} />
-
-      {/* Pagination */}
-      <div className="flex justify-center mt-6">
-        <button className="px-4 py-2 bg-blue-500 text-white rounded-md mr-2 hover:bg-blue-600" disabled={page === 1} onClick={() => setPage((prev) => Math.max(prev - 1, 1))}>
-          Previous
-        </button>
-        <span className="px-4 py-2">{`Page ${page}`}</span>
-        <button className="px-4 py-2 bg-blue-500 text-white rounded-md ml-2 hover:bg-blue-600" onClick={() => setPage((prev) => prev + 1)}>
-          Next
-        </button>
-      </div>
+      <EventCard events={events} setEvents={setEvents} loginUserId={loginUserId} />
     </div>
   );
 }
