@@ -176,13 +176,17 @@ function App() {
 
       {/* Pagination */}
       <div className="flex justify-center mt-6">
-        <button className="px-4 py-2 bg-blue-500 text-white rounded-md mr-2 hover:bg-blue-600" disabled={page === 1} onClick={() => setPage((prev) => Math.max(prev - 1, 1))}>
-          Previous
-        </button>
+        {page > 1 && (
+          <button className="px-4 py-2 bg-blue-500 text-white rounded-md mr-2 hover:bg-blue-600" onClick={() => setPage((prev) => prev - 1)}>
+            Previous
+          </button>
+        )}
         <span className="px-4 py-2">{`Page ${page}`}</span>
-        <button className="px-4 py-2 bg-blue-500 text-white rounded-md ml-2 hover:bg-blue-600" onClick={() => setPage((prev) => prev + 1)}>
-          Next
-        </button>
+        {events.length > 30 && (
+          <button className="px-4 py-2 bg-blue-500 text-white rounded-md ml-2 hover:bg-blue-600" onClick={() => setPage((prev) => prev + 1)}>
+            Next
+          </button>
+        )}
       </div>
     </div>
   );
