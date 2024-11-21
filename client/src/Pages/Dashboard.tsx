@@ -9,6 +9,10 @@ import { Input, InputGroup, InputRightAddon } from "@chakra-ui/react";
 import DefaultSpinner from "@/components/DefaultSpinner";
 
 function App() {
+  useEffect(() => {
+    document.title = "Home | Meetup";
+  }, []);
+
   const [page, setPage] = useState(1);
   const [isLogin, setIsLogin] = useState(false);
   const [loginUserId, setLoginUserId] = useState(0);
