@@ -1,6 +1,14 @@
 {
   "dependencies": {
     "@tanstack/react-query": "^5.61.0",
-    "@tanstack/react-query-devtools": "^5.61.0"
+    "@tanstack/react-query-devtools": "^5.61.0",
+    "jest": "^29.7.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/selenium-webdriver": "^4.1.27",
+    "chai": "^5.1.2",
+    "mocha": "^10.8.2",
+    "selenium-webdriver": "^4.26.0"
   }
 }
