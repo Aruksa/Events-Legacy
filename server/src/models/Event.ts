@@ -52,6 +52,7 @@ class Event extends Model<EventAttributes, EventCreationAttributes> implements E
         visits: {
           type: DataTypes.INTEGER,
           allowNull: true,
+          defaultValue: 0,
         },
         startDate: {
           type: DataTypes.DATE,
