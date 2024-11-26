@@ -3,9 +3,8 @@ import * as eventRepository from "../repositories/eventRepository";
 import { composeFilters } from "../filters/eventFilters/filterComposer";
 
 export const createEvent = async (data: any) => {
-  const { title, details, location, startDate, endDate, thumbnailUrl, userId } =
-    data;
-  if (!title || !details || !location || !startDate || !endDate || !userId) {
+  const { title, details, location, startDate, endDate, thumbnailUrl, genreId, userId } = data;
+  if (!title || !details || !location || !startDate || !endDate || !genreId || !thumbnailUrl || !userId) {
     throw new Error("Missing required fields");
   }
   return await eventRepository.createEvent(data);
@@ -22,11 +21,7 @@ export const deleteEvent = async (id: number, userId: number) => {
   if (!success) throw new Error("Event not found or unauthorized");
 };
 
-export const getEvents = async (
-  filters: any,
-  page: number,
-  pageSize: number
-) => {
+export const getEvents = async (filters: any, page: number, pageSize: number) => {
   const limit = pageSize;
   const offset = (page - 1) * limit;
 

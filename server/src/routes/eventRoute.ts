@@ -4,12 +4,13 @@ import express from "express";
 import { createEvent, updateEvent, deleteEvent, getAllEvents, getEventById, userEvents } from "../controllers/eventController";
 import { createUpdateAttendy, getAllEventAttendy, getAttendy } from "../controllers/attendyController";
 import { authenticateToken } from "../middleware/authMiddleware";
+import { trackUserVisit } from "../middleware/trackUserMiddleware";
 
 const router = express.Router();
 
 router.get("/user-event", authenticateToken, userEvents);
 router.get("/", getAllEvents);
-router.get("/:id", getEventById);
+router.get("/:id", trackUserVisit, getEventById);
 
 router.post("/", authenticateToken, createEvent);
 router.put("/:id", authenticateToken, updateEvent);

@@ -6,6 +6,7 @@ interface EventAttributes {
   details: string;
   thumbnailUrl: string;
   location: string;
+  visits?: number | null;
   startDate: Date;
   endDate: Date;
   userId: Number;
@@ -13,15 +14,13 @@ interface EventAttributes {
 
 interface EventCreationAttributes extends Optional<EventAttributes, "id"> {}
 
-class Event
-  extends Model<EventAttributes, EventCreationAttributes>
-  implements EventAttributes
-{
+class Event extends Model<EventAttributes, EventCreationAttributes> implements EventAttributes {
   public id!: number;
   public title!: string;
   public details!: string;
   public thumbnailUrl!: string;
   public location!: string;
+  public visits?: number | null;
   public startDate!: Date;
   public endDate!: Date;
   public userId!: number; // Foreign key for User
@@ -49,6 +48,10 @@ class Event
         location: {
           type: DataTypes.STRING,
           allowNull: false,
+        },
+        visits: {
+          type: DataTypes.INTEGER,
+          allowNull: true,
         },
         startDate: {
           type: DataTypes.DATE,
