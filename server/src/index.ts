@@ -10,6 +10,9 @@ import attendyRouters from "./routes/attendyRoute";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const cookieParser = require("cookie-parser");
+app.use(cookieParser());
+
 app.use(
   cors({
     origin: "http://localhost:5173",
