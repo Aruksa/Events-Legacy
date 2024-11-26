@@ -1,9 +1,9 @@
 import { DataTypes, Model, Optional, Sequelize } from "sequelize";
 
 interface VisitAttributes {
-  id: string;
-  user_id?: string | null;
-  event_id: string;
+  id: number;
+  user_id?: number | null;
+  event_id: number;
   anon_id?: string | null;
   visited_at: Date;
 }
@@ -11,9 +11,9 @@ interface VisitAttributes {
 interface VisitCreationAttributes extends Optional<VisitAttributes, "id" | "user_id" | "anon_id"> {}
 
 class UserEventVisit extends Model<VisitAttributes, VisitCreationAttributes> implements VisitAttributes {
-  public id!: string;
-  public user_id!: string | null;
-  public event_id!: string;
+  public id!: number;
+  public user_id!: number | null;
+  public event_id!: number;
   public anon_id!: string | null;
   public visited_at!: Date;
 
@@ -21,24 +21,24 @@ class UserEventVisit extends Model<VisitAttributes, VisitCreationAttributes> imp
     UserEventVisit.init(
       {
         id: {
-          type: DataTypes.UUID,
-          defaultValue: DataTypes.UUIDV4,
+          type: DataTypes.INTEGER,
+          autoIncrement: true,
           primaryKey: true,
         },
         user_id: {
-          type: DataTypes.UUID,
+          type: DataTypes.INTEGER,
           allowNull: true,
-          onDelete: "CASCADE",
+          onDelete: "SET NULL",
         },
         event_id: {
-          type: DataTypes.UUID,
+          type: DataTypes.INTEGER,
           allowNull: false,
           onDelete: "CASCADE",
         },
         anon_id: {
           type: DataTypes.STRING,
           allowNull: true,
-          onDelete: "CASCADE",
+          onDelete: "SET NULL",
         },
         visited_at: {
           type: DataTypes.DATE,

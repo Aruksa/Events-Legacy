@@ -45,11 +45,8 @@ Event.belongsToMany(User, { through: Attendy, foreignKey: "eventId" });
 User.belongsToMany(Event, { through: Attendy, foreignKey: "userId" });
 
 // Visit: Associations
-Event.hasMany(UserEventVisit, { foreignKey: "event_id", onDelete: "CASCADE" });
-UserEventVisit.belongsTo(Event, { foreignKey: "event_id" });
-
-User.hasMany(UserEventVisit, { foreignKey: "user_id", onDelete: "CASCADE" });
 UserEventVisit.belongsTo(User, { foreignKey: "user_id" });
+UserEventVisit.belongsTo(Event, { foreignKey: "event_id" });
 
 // Export sequelize and models
 export default sequelize;
