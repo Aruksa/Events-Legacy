@@ -4,14 +4,35 @@ import Event from "../models/Event";
 import { EventGenre, UserEventVisit } from "../models";
 import { Op } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
+import client from "../config/elasticSearch";
 
 export const createEvent = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id;
     const eventData = { ...req.body, userId };
-    // console.log("????????????????????????????>>>>>>>>>>", eventData);
     const newEvent = await eventService.createEvent(eventData);
-    res.status(201).json({ message: "Event created successfully", data: newEvent });
+    const genreIds = [];
+    for (let i = 0; i < req.body.genreId.length; i++) {
+      genreIds.push(req.body.genreId[i].value);
+    }
+    // Indexing games in elastic
+    await client.index({
+      index: "events",
+      id: `${newEvent.id}`,
+      body: {
+        title: req.body.title,
+        details: req.body.details,
+        location: req.body.location,
+        thumbnailUrl: req.body.thumbnailUrl,
+        userId: userId,
+        visit: 0,
+        going: 0,
+        genreId: genreIds,
+      },
+    });
+    res
+      .status(201)
+      .json({ message: "Event created successfully", data: newEvent });
   } catch (error: any) {
     res.status(400).json({ message: error.message });
   }
@@ -21,8 +42,14 @@ export const updateEvent = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userId = (req as any).user?.id;
-    const updatedEvent = await eventService.updateEvent(parseInt(id), userId, req.body);
-    res.status(200).json({ message: "Event updated successfully", data: updatedEvent });
+    const updatedEvent = await eventService.updateEvent(
+      parseInt(id),
+      userId,
+      req.body
+    );
+    res
+      .status(200)
+      .json({ message: "Event updated successfully", data: updatedEvent });
   } catch (error: any) {
     res.status(400).json({ message: error.message });
   }
@@ -42,14 +69,21 @@ export const deleteEvent = async (req: Request, res: Response) => {
 export const getAllEvents = async (req: Request, res: Response) => {
   try {
     const { page = 1, pageSize = 10, ...filters } = req.query;
-    const events = await eventService.getEvents(filters, parseInt(page as string), parseInt(pageSize as string));
+    const events = await eventService.getEvents(
+      filters,
+      parseInt(page as string),
+      parseInt(pageSize as string)
+    );
     res.status(200).json({ data: events });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 };
 
-export const getEventById = async (req: Request, res: Response): Promise<void> => {
+export const getEventById = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const { id } = req.params;
     const userId = (req as any).user?.id || null;
@@ -95,7 +129,10 @@ export const getEventById = async (req: Request, res: Response): Promise<void> =
   }
 };
 
-export const userEvents: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+export const userEvents: RequestHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const userId = (req as any).user?.id;
 
   try {
