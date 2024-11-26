@@ -1,8 +1,9 @@
 import { Request, RequestHandler, Response } from "express";
 import * as eventService from "../services/eventService";
 import Event from "../models/Event";
-import { EventGenre } from "../models";
+import { EventGenre, UserEventVisit } from "../models";
 import { Op } from "sequelize";
+import { v4 as uuidv4 } from "uuid";
 
 export const createEvent = async (req: Request, res: Response) => {
   try {
@@ -48,12 +49,46 @@ export const getAllEvents = async (req: Request, res: Response) => {
   }
 };
 
-export const getEventById = async (req: Request, res: Response) => {
+export const getEventById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    // const userId = (req as any).user?.id || null;
-    // let anonId = req.cookies.anonId;
-    const event = await eventService.getEventById(parseInt(id));
+    const userId = (req as any).user?.id || null;
+    let anonId = req.cookies.anonId;
+
+    if (!userId && !anonId) {
+      anonId = uuidv4();
+      res.cookie("anonId", anonId, {
+        httpOnly: true,
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+      });
+    }
+
+    const event = await Event.findByPk(parseInt(id));
+
+    if (!event) {
+      res.status(404).json({ message: "Event not found" });
+      return;
+    }
+
+    const hasVisited = await UserEventVisit.findOne({
+      where: {
+        event_id: parseInt(id),
+        ...(userId ? { user_id: userId } : { anon_id: anonId }),
+      },
+    });
+
+    if (!hasVisited) {
+      event.visits = (event.visits || 0) + 1;
+      await event.save();
+
+      await UserEventVisit.create({
+        event_id: parseInt(id),
+        user_id: userId,
+        anon_id: anonId,
+        visited_at: new Date(),
+      });
+    }
+
     res.status(200).json({ data: event });
   } catch (error: any) {
     res.status(404).json({ message: error.message });
