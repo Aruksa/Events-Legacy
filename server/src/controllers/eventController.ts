@@ -105,10 +105,10 @@ export const getAllEvents = async (req: Request, res: Response) => {
     const { hits } = await client.search(elasticQuery);
 
     const events = hits.hits.map((hit) => {
-      const source = hit._source;
+      const source: any = hit._source;
       return {
-        source,
-        id: parseInt(hit._id!),
+        id: parseInt(hit._id!, 10),
+        ...source,
       };
     });
     res.status(200).json({ data: events });
