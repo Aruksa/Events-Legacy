@@ -16,6 +16,8 @@ const createEventIndex = async () => {
             visit: { type: "integer" },
             going: { type: "integer" },
             userId: { type: "integer" },
+            startDate: { type: "date" },
+            endDate: { type: "date" },
           },
         },
       },
