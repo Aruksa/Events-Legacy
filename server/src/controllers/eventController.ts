@@ -84,15 +84,18 @@ export const getAllEvents = async (req: Request, res: Response) => {
       from: offset,
       size: limitES,
       body: {
-        bool: {
-          must: [
-            req.query.title
-              ? { match_phrase_prefix: { title: req.query.title } }
-              : { match_all: {} },
-            req.query.location
-              ? { match: { location: req.query.title } }
-              : { match_all: {} },
-          ],
+        query: {
+          // Wrap bool in query
+          bool: {
+            must: [
+              req.query.title
+                ? { match_phrase_prefix: { title: req.query.title } }
+                : { match_all: {} },
+              req.query.location
+                ? { match: { location: req.query.location } } // Fix key here
+                : { match_all: {} },
+            ],
+          },
         },
       },
     };
