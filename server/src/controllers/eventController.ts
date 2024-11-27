@@ -106,7 +106,10 @@ export const getAllEvents = async (req: Request, res: Response) => {
 
     const events = hits.hits.map((hit) => {
       const source = hit._source;
-      return source;
+      return {
+        source,
+        id: parseInt(hit._id!),
+      };
     });
     res.status(200).json({ data: events });
   } catch (error: any) {
