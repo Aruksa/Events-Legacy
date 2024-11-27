@@ -1,5 +1,5 @@
 import { locationFilter } from "./locationFilter";
-import { titleFilter } from "./titlefilter";
+import { titleFilter } from "./titleFilter";
 
 export const composeFilters = (filters: any) => {
   const filterFunctions = [titleFilter, locationFilter];
