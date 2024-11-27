@@ -32,9 +32,7 @@ export const createEvent = async (req: Request, res: Response) => {
         endDate: newEvent.endDate,
       },
     });
-    res
-      .status(201)
-      .json({ message: "Event created successfully", data: newEvent });
+    res.status(201).json({ message: "Event created successfully", data: newEvent });
   } catch (error: any) {
     res.status(400).json({ message: error.message });
   }
@@ -44,14 +42,8 @@ export const updateEvent = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userId = (req as any).user?.id;
-    const updatedEvent = await eventService.updateEvent(
-      parseInt(id),
-      userId,
-      req.body
-    );
-    res
-      .status(200)
-      .json({ message: "Event updated successfully", data: updatedEvent });
+    const updatedEvent = await eventService.updateEvent(parseInt(id), userId, req.body);
+    res.status(200).json({ message: "Event updated successfully", data: updatedEvent });
   } catch (error: any) {
     res.status(400).json({ message: error.message });
   }
@@ -90,9 +82,7 @@ export const getAllEvents = async (req: Request, res: Response) => {
           // Wrap bool in query
           bool: {
             must: [
-              req.query.title
-                ? { match_phrase_prefix: { title: req.query.title } }
-                : { match_all: {} },
+              req.query.title ? { match_phrase_prefix: { title: req.query.title } } : { match_all: {} },
               req.query.location
                 ? { match: { location: req.query.location } } // Fix key here
                 : { match_all: {} },
@@ -103,7 +93,7 @@ export const getAllEvents = async (req: Request, res: Response) => {
     };
 
     const { hits } = await client.search(elasticQuery);
-
+    //@ts-ignore
     const events = hits.hits.map((hit) => {
       const source: any = hit._source;
       return {
@@ -117,10 +107,7 @@ export const getAllEvents = async (req: Request, res: Response) => {
   }
 };
 
-export const getEventById = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const getEventById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const userId = (req as any).user?.id || null;
@@ -166,10 +153,7 @@ export const getEventById = async (
   }
 };
 
-export const userEvents: RequestHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const userEvents: RequestHandler = async (req: Request, res: Response): Promise<void> => {
   const userId = (req as any).user?.id;
 
   try {
