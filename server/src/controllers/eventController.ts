@@ -68,12 +68,41 @@ export const deleteEvent = async (req: Request, res: Response) => {
 
 export const getAllEvents = async (req: Request, res: Response) => {
   try {
-    const { page = 1, pageSize = 10, ...filters } = req.query;
-    const events = await eventService.getEvents(
-      filters,
-      parseInt(page as string),
-      parseInt(pageSize as string)
-    );
+    // const { page = 1, pageSize = 10, ...filters } = req.query;
+
+    // const events = await eventService.getEvents(
+    //   filters,
+    //   parseInt(page as string),
+    //   parseInt(pageSize as string)
+    // );
+
+    const pageES = parseInt(req.query.page as string) - 1 || 0;
+    const limitES = parseInt(req.query.pageSize as string) || 10;
+    const offset = pageES * limitES;
+    const elasticQuery: any = {
+      index: "events",
+      from: offset,
+      size: limitES,
+      body: {
+        bool: {
+          must: [
+            req.query.title
+              ? { match_phrase_prefix: { title: req.query.title } }
+              : { match_all: {} },
+            req.query.location
+              ? { match: { location: req.query.title } }
+              : { match_all: {} },
+          ],
+        },
+      },
+    };
+
+    const { hits } = await client.search(elasticQuery);
+
+    const events = hits.hits.map((hit) => {
+      const source = hit._source;
+      return source;
+    });
     res.status(200).json({ data: events });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
