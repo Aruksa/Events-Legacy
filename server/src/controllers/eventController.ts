@@ -28,6 +28,8 @@ export const createEvent = async (req: Request, res: Response) => {
         visit: 0,
         going: 0,
         genreId: genreIds,
+        startDate: newEvent.startDate,
+        endDate: newEvent.endDate,
       },
     });
     res
